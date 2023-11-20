@@ -209,7 +209,7 @@ def get_agent_modules(env: EnvBase,
     if cfg.agent.algo == 'ppolag':
         actor_net = ActorNet(cfg=cfg, env=env, device=device)
         distribution_class = IndependentNormal if cfg.agent.actor_dist_bound <= 0 else TruncatedNormal
-        distribution_kwargs = None if cfg.agent.actor_dist_bound <= 0 else {'min': -cfg.agent.actor_dist_bound,
+        distribution_kwargs = None if cfg.agent.actor_dist_bound <= 0 else {'min': 0.,  # -cfg.agent.actor_dist_bound,
                                                                             'max': cfg.agent.actor_dist_bound}
         policy_module = ProbabilisticActor(
             module=TensorDictModule(
@@ -296,8 +296,8 @@ def evaluate(eval_env: EnvBase, policy_module: ProbabilisticActor, optimal_score
                     # 'eval/all_scores': wandb.Histogram(np_histogram=np.histogram(rewards[:, 0])),
                     # 'eval/all_violations': wandb.Histogram(np_histogram=np.histogram(rewards[:, 1]))
                     }
-        eval_str = f"EVAL: avg cumreward = {eval_log['eval/avg_score']: 1.2f}, " \
-                   f"avg violation = {eval_log['eval/avg_violation']: 1.2f}"
+        eval_str = f"EVAL: rew = {eval_log['eval/avg_score']: 1.2f}, " \
+                   f"cost = {eval_log['eval/avg_cost']: 1.2f}"
         histories = list(eval_env.history)
         actions_log = {f'eval/{k}': np.array([[v] for h in histories for v in h[k]]) for k in histories[0].keys()}
         eval_env.reset()  # reset the environment after the eval rollout
@@ -409,9 +409,8 @@ def train_loop(cfg: DictConfig,
             train_log['train/loc_out_range'] = (rollout_td['loc'][:, 1].max() - rollout_td['loc'][:, 1].min()).item()
 
         pbar.update(rollout_td.numel())
-        train_str = f"TRAIN: avg cumreward = {train_log['train/avg_score']: 1.2f}, " \
-                    f"avg violation = {train_log['train/avg_violation']: 1.2f}, " \
-                    f"max steps = {train_log['train/max_steps']: 2d}"
+        train_str = f"TRAIN: rew = {train_log['train/avg_score']: 1.2f}, " \
+                    f"cost = {train_log['train/avg_cost']: 1.2f} "
         eval_log, eval_str = evaluate(eval_env, policy_module, optimal_scores, cost_limit)
 
         pbar.set_description(f"{train_str} | {eval_str} ")

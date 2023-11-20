@@ -7,14 +7,14 @@ lagrange:
   type: pid
   positive_violation: False
   params:
-    initial_value: 15.0
+    initial_value: 1.0
     kp: 0.01
     ki: 0.001
     kd: 0.05
     d_delay: 1
     alpha_p: 0.0
     alpha_d: 0.0
-    cost_limit: 1000
+    cost_limit: 500
     proj: "softplus"
 
 actor_lr: 0.003
@@ -28,7 +28,7 @@ actor_dist_bound: 10  # float; if <= 0, actions are unbounded,
                       # if > 0 action range is symmetric [-bound, bound]
 
 loss_module:
-  clip_epsilon: 0.15
+  clip_epsilon: 0.2
   entropy_coef: 0.00
   entropy_bonus: False
   critic_coef: 0.5
